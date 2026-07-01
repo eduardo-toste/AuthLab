@@ -1,5 +1,7 @@
 package com.auth.lab.controller;
 
+import com.auth.lab.dto.LoginRequest;
+import com.auth.lab.dto.LoginResponse;
 import com.auth.lab.dto.RegisterRequest;
 import com.auth.lab.service.AuthService;
 import jakarta.validation.Valid;
@@ -22,6 +24,12 @@ public class AuthController {
     public ResponseEntity<Void> register(@RequestBody @Valid RegisterRequest request) {
         authService.registerUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) throws Exception {
+        LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
     }
 
 }
