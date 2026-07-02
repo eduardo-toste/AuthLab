@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,10 +34,12 @@ public class NoteController {
         return ResponseEntity.ok(response);
     }
 
+    // @GetMapping("/{noteId}/user/"{userId}")
     // TO-DO: finish this implementation with correct permissions
     @GetMapping("/{noteId}")
-    public ResponseEntity<NoteResponse> getNoteById(@PathVariable Long noteId) {
-        NoteResponse response = noteService.getNoteById(noteId);
+    public ResponseEntity<NoteResponse> getNoteById(@PathVariable Long noteId,
+                                                    @AuthenticationPrincipal User author) {
+        NoteResponse response = noteService.getNoteById(noteId, author);
         return ResponseEntity.ok(response);
     }
 
