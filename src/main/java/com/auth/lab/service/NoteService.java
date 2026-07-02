@@ -2,6 +2,7 @@ package com.auth.lab.service;
 
 import com.auth.lab.dto.CreateNoteRequest;
 import com.auth.lab.dto.NoteResponse;
+import com.auth.lab.exception.NoteNotFoundException;
 import com.auth.lab.mapper.NoteMapper;
 import com.auth.lab.model.Note;
 import com.auth.lab.model.User;
@@ -32,12 +33,20 @@ public class NoteService {
     }
 
     public List<NoteResponse> getNotes(User author) {
-        List<Note> authorNotes = noteRepository.findAllByAuthor(author);
+        List<Note> authorNotes = author.hasRole("ROLE_ADMIN")
+                ? noteRepository.findAll()
+                : noteRepository.findAllByAuthor(author);
+
         return authorNotes.stream().map(noteMapper::toResponse).toList();
     }
 
-    // TO-DO: finish this implementation
-    public NoteResponse getNoteById(Long noteId) {
-        return null;
+    public NoteResponse getNoteById(Long noteId, User author) {
+        Note authorNote = author.hasRole("ROLE_ADMIN")
+                ? noteRepository.findById(noteId)
+                  .orElseThrow(NoteNotFoundException::new)
+                : noteRepository.findByIdAndAuthor(noteId, author)
+                  .orElseThrow(NoteNotFoundException::new);
+
+        return noteMapper.toResponse(authorNote);
     }
 }
