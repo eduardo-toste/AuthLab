@@ -33,7 +33,7 @@ public class NoteService {
     }
 
     public List<NoteResponse> getNotes(User author) {
-        List<Note> authorNotes = author.hasRole("ROLE_ADMIN")
+        List<Note> authorNotes = isRequesterAdmin(author)
                 ? noteRepository.findAll()
                 : noteRepository.findAllByAuthor(author);
 
@@ -41,12 +41,16 @@ public class NoteService {
     }
 
     public NoteResponse getNoteById(Long noteId, User author) {
-        Note authorNote = author.hasRole("ROLE_ADMIN")
+        Note authorNote = isRequesterAdmin(author)
                 ? noteRepository.findById(noteId)
                   .orElseThrow(NoteNotFoundException::new)
                 : noteRepository.findByIdAndAuthor(noteId, author)
                   .orElseThrow(NoteNotFoundException::new);
 
         return noteMapper.toResponse(authorNote);
+    }
+
+    private boolean isRequesterAdmin(User requester) {
+        return requester.hasRole("ROLE_ADMIN");
     }
 }
