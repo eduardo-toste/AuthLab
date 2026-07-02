@@ -71,4 +71,9 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+
+    public boolean hasRole(String role) {
+        return getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(role));
+    }
 }
