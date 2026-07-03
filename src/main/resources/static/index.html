@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuthLab</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root {
+    --accent: #4f46e5;
+    --accent-dark: #4338ca;
+    --bg: #f4f5fb;
+    --card: #ffffff;
+    --border: #e5e7eb;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --danger: #dc2626;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #eef0fb 0%, #f7f7fb 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    padding: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(31, 41, 55, 0.08);
+    padding: 32px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    text-align: center;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .tabs {
+    display: flex;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+
+  .tabs button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tabs button.active {
+    background: var(--card);
+    color: var(--accent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  form { display: flex; flex-direction: column; gap: 12px; }
+
+  input, textarea {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  input:focus, textarea:focus { border-color: var(--accent); }
+
+  textarea { resize: vertical; min-height: 70px; }
+
+  button.primary {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button.primary:hover { background: var(--accent-dark); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .divider::before, .divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .google-btn-wrapper { display: flex; justify-content: center; }
+
+  .error {
+    color: var(--danger);
+    font-size: 13px;
+    margin: 0;
+    display: none;
+  }
+
+  .hidden { display: none !important; }
+
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .app-header .user-info { font-size: 13px; color: var(--muted); }
+  .app-header .user-info strong { color: var(--text); }
+
+  .logout-btn {
+    border: 1px solid var(--border);
+    background: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--muted);
+  }
+
+  .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+  .notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+
+  .note-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+  }
+
+  .note-card h3 { margin: 0 0 4px; font-size: 14px; }
+  .note-card p { margin: 0; font-size: 13px; color: var(--muted); white-space: pre-wrap; }
+
+  .empty-state {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 16px 0;
+  }
+</style>
+</head>
+<body>
+
+  <div class="card" id="authCard">
+    <h1>AuthLab</h1>
+    <p class="subtitle">Faça login pra testar a autenticação</p>
+
+    <div class="tabs">
+      <button id="tabLogin" class="active" onclick="switchTab('login')">Entrar</button>
+      <button id="tabRegister" onclick="switchTab('register')">Registrar</button>
+    </div>
+
+    <form id="loginForm" onsubmit="return handleLogin(event)">
+      <input type="email" id="loginEmail" placeholder="E-mail" required>
+      <input type="password" id="loginPassword" placeholder="Senha" required>
+      <p class="error" id="loginError"></p>
+      <button type="submit" class="primary">Entrar</button>
+    </form>
+
+    <form id="registerForm" class="hidden" onsubmit="return handleRegister(event)">
+      <input type="text" id="registerName" placeholder="Nome" required>
+      <input type="email" id="registerEmail" placeholder="E-mail" required>
+      <input type="password" id="registerPassword" placeholder="Senha" required>
+      <p class="error" id="registerError"></p>
+      <button type="submit" class="primary">Criar conta</button>
+    </form>
+
+    <div class="divider">ou</div>
+
+    <div class="google-btn-wrapper">
+      <div id="g_id_onload"
+           data-client_id="1071651766130-979g0slgig4b2gg2emp5qrlu8tpbkndl.apps.googleusercontent.com"
+           data-callback="handleGoogleLogin">
+      </div>
+      <div class="g_id_signin" data-shape="pill" data-theme="outline" data-size="large"></div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="appCard">
+    <div class="app-header">
+      <span class="user-info">Logado como <strong id="userEmail"></strong></span>
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+
+    <form onsubmit="return handleCreateNote(event)">
+      <input type="text" id="noteTitle" placeholder="Título" required>
+      <textarea id="noteContent" placeholder="Conteúdo" required></textarea>
+      <button type="submit" class="primary">Criar nota</button>
+    </form>
+
+    <div class="notes-list" id="notesList"></div>
+  </div>
+
+<script>
+  const API_BASE = window.location.origin;
+
+  function switchTab(tab) {
+    const isLogin = tab === 'login';
+    document.getElementById('tabLogin').classList.toggle('active', isLogin);
+    document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+    document.getElementById('loginForm').classList.toggle('hidden', !isLogin);
+    document.getElementById('registerForm').classList.toggle('hidden', isLogin);
+  }
+
+  function showError(id, message) {
+    const el = document.getElementById(id);
+    el.textContent = message;
+    el.style.display = 'block';
+  }
+
+  function clearError(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  function decodeEmailFromToken(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub;
+    } catch (e) {
+      return '—';
+    }
+  }
+
+  function onAuthenticated(token) {
+    localStorage.setItem('authlab_token', token);
+    document.getElementById('authCard').classList.add('hidden');
+    document.getElementById('appCard').classList.remove('hidden');
+    document.getElementById('userEmail').textContent = decodeEmailFromToken(token);
+    loadNotes();
+  }
+
+  function logout() {
+    localStorage.removeItem('authlab_token');
+    document.getElementById('appCard').classList.add('hidden');
+    document.getElementById('authCard').classList.remove('hidden');
+  }
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    clearError('loginError');
+
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!res.ok) {
+      showError('loginError', 'E-mail ou senha inválidos.');
+      return false;
+    }
+
+    const data = await res.json();
+    onAuthenticated(data.token);
+    return false;
+  }
+
+  async function handleRegister(event) {
+    event.preventDefault();
+    clearError('registerError');
+
+    const name = document.getElementById('registerName').value;
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    if (!res.ok) {
+      showError('registerError', 'Não foi possível criar a conta.');
+      return false;
+    }
+
+    switchTab('login');
+    document.getElementById('loginEmail').value = email;
+    return false;
+  }
+
+  async function handleGoogleLogin(response) {
+    const res = await fetch(`${API_BASE}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: response.credential })
+    });
+
+    if (!res.ok) {
+      showError('loginError', 'Falha ao autenticar com o Google.');
+      return;
+    }
+
+    const data = await res.json();
+    onAuthenticated(data.token);
+  }
+
+  function authHeaders() {
+    return { Authorization: `Bearer ${localStorage.getItem('authlab_token')}` };
+  }
+
+  async function loadNotes() {
+    const res = await fetch(`${API_BASE}/notes`, { headers: authHeaders() });
+    const list = document.getElementById('notesList');
+    list.innerHTML = '';
+
+    if (!res.ok) {
+      logout();
+      return;
+    }
+
+    const notes = await res.json();
+
+    if (notes.length === 0) {
+      list.innerHTML = '<p class="empty-state">Nenhuma nota ainda.</p>';
+      return;
+    }
+
+    notes.forEach(note => {
+      const div = document.createElement('div');
+      div.className = 'note-card';
+      div.innerHTML = `<h3>${note.title}</h3><p>${note.content}</p>`;
+      list.appendChild(div);
+    });
+  }
+
+  async function handleCreateNote(event) {
+    event.preventDefault();
+
+    const title = document.getElementById('noteTitle').value;
+    const content = document.getElementById('noteContent').value;
+
+    const res = await fetch(`${API_BASE}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ title, content })
+    });
+
+    if (res.ok) {
+      document.getElementById('noteTitle').value = '';
+      document.getElementById('noteContent').value = '';
+      loadNotes();
+    }
+
+    return false;
+  }
+
+  const existingToken = localStorage.getItem('authlab_token');
+  if (existingToken) {
+    onAuthenticated(existingToken);
+  }
+</script>
+
+</body>
+</html>
