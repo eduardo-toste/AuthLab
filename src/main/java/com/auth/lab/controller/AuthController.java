@@ -1,5 +1,6 @@
 package com.auth.lab.controller;
 
+import com.auth.lab.dto.GoogleAuthRequest;
 import com.auth.lab.dto.LoginRequest;
 import com.auth.lab.dto.LoginResponse;
 import com.auth.lab.dto.RegisterRequest;
@@ -29,6 +30,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) throws Exception {
         LoginResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<LoginResponse> loginWithGoogle(@RequestBody @Valid GoogleAuthRequest request) throws Exception {
+        LoginResponse response = authService.loginWithGoogle(request);
         return ResponseEntity.ok(response);
     }
 
