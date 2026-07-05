@@ -14,6 +14,7 @@ Este repositório existe para praticar, de forma objetiva:
 - controle de acesso com roles
 - ownership de recursos
 - identificação do usuário autenticado no backend
+- login social com Google (OAuth2 / ID Token)
 
 ## Tecnologias
 
@@ -24,9 +25,18 @@ Este repositório existe para praticar, de forma objetiva:
 - PostgreSQL
 - Flyway
 - JWT
+- Google API Client (verificação de login social)
 - JUnit 5
 - Mockito
 
 ## Abordagem
 
 A estrutura será simples e tradicional, organizada em camadas como `controller`, `service`, `repository`, `entity`, `dto`, `security` e `config`. O objetivo aqui não é explorar arquitetura avançada, e sim deixar claro como cada parte participa do fluxo de autenticação e autorização.
+
+## Funcionalidades
+
+- Registro e login com e-mail/senha
+- Login social com Google, reaproveitando o mesmo fluxo de emissão de JWT do login tradicional (veja [GOOGLE_AUTH.md](./GOOGLE_AUTH.md))
+- CRUD de notas com ownership: cada usuário só acessa as próprias notas
+- Usuários com role `ROLE_ADMIN` podem visualizar notas de qualquer usuário
+- Página de demonstração em `http://localhost:8080/` para testar login (senha e Google) e notas sem precisar de Postman
